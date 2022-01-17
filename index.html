@@ -18,8 +18,7 @@
 		<!-- 金额 -->
 		<div class="m10 inputbox">
 			<span>¥</span>
-			<!-- <span class="inpt">0.00</span> -->
-			<input type="number" class="inpt" disabled value="0.00">
+			<span class="inpt">0.00</span>
 		</div>
 
 		<div class="money">
@@ -67,16 +66,19 @@
 				//======
 				for (let i = 0; i < li.length; i++) {
 					li[i].onclick = function() {
-
-						console.log('系统编码===', systemCode)
-						console.log('订单金额===', input.innerHTML)
-						console.log('支付方式===', productCode)
-
+						// // console.log('系统编码===', systemCode)
+						// // console.log(this.innerHTML, '订单金额===', input.innerHTML)
+						// // console.log('支付方式===', productCode)
+						// 点击付款
 						if (this.innerHTML == '付款') {
-							console.log('点击了完成');
+							if (input.innerHTML-0.01 <= 0) {
+								input.innerHTML = '0.00'
+								alert('支付金额必须大于0')
+								// return
+							} else {
 							//如果是微信支付
 							if(productCode == 'wxpayOfficial'){
-								console.log('微信支付的写法');
+								// console.log('微信支付的写法');
 								xmlHttp = new XMLHttpRequest();
 								var array = {
 									systemCode: systemCode, //系统编码	
@@ -86,7 +88,6 @@
 									clientIp: '127.0.0.1', 
 									openId: openId,
 								}
-								console.log('JSON.stringify(array)====',JSON.stringify(array))
 								//  (2) 连接服务器
 								//  post
 								xmlHttp.open("post", "http://47.116.135.219:9891/api/pay/qrCodePay");
@@ -98,7 +99,6 @@
 								// （4） 回调函数  success
 								xmlHttp.onreadystatechange = function() {
 									if (this.status == 200) {
-										console.log("=======qrCodePay=========", this.responseText)
 										var obj ={}
 										obj =JSON.parse(JSON.parse(this.responseText).payInfo)
 										startWxPay(obj)
@@ -107,7 +107,7 @@
 								return;
 							}
 							if(productCode == 'alipayH5'){
-								console.log('支付宝支付的写法')
+								// console.log('支付宝支付的写法')
 								// alert(productCode)
 								// 开始调取后端支付接口进行app唤起
 								xmlHttp = new XMLHttpRequest();
@@ -127,7 +127,7 @@
 								// （4） 回调函数  success
 								xmlHttp.onreadystatechange = function() {
 									if (this.status == 200) {
-										console.log("=======zhifb=========", this.responseText)	
+										// console.log("=======zhifb=========", this.responseText)	
 										if(this.responseText){
 											window.location.href = JSON.parse(this.responseText).payInfo;
 										}
@@ -138,7 +138,8 @@
 							}
 							return;
 						}
-						if (this.innerHTML == '删除') { //删除
+						}
+						else if (this.innerHTML == '删除') { //删除
 							if (input.innerHTML == '0.00') {
 								input.innerHTML = '0.00'
 							} else {
@@ -146,15 +147,26 @@
 								input.innerHTML = input.innerHTML.length == 1 ? input.innerHTML = '0.00' : input.innerHTML.substr(0, input.innerHTML
 									.length - 1); //截取长度
 							}
-						} else if (input.innerHTML == '0.00') { //输入框为0.00
-							input.innerHTML = this.innerHTML //当前内容替换成输入内容
-						} else if (input.innerHTML.indexOf('.') != -1 && this.innerHTML == '.') {
-							input.innerHTML = input.innerHTML //当前内容=当前内容
-						} else if (input.innerHTML.indexOf('.') != -1 && input.innerHTML.split('.')[1].length == 2) {
-							input.innerHTML = input.innerHTML //当前内容=当前内容
 						} else {
-							input.innerHTML += this.innerHTML //拼接金额
+							if (input.innerHTML == '0.00') { //输入框为0.00
+								input.innerHTML = this.innerHTML //当前内容替换成输入内容
+							} else if (input.innerHTML.indexOf('.') != -1 && this.innerHTML == '.') {
+								input.innerHTML = input.innerHTML //当前内容=当前内容
+							} else if (input.innerHTML.indexOf('.') != -1 && input.innerHTML.split('.')[1].length == 2) {
+								input.innerHTML = input.innerHTML //当前内容=当前内容
+							} else {
+								input.innerHTML += this.innerHTML //拼接金额
+							}
 						}
+						// else if (input.innerHTML == '0.00') { //输入框为0.00
+						// 	input.innerHTML = '0.00' //当前内容替换成输入内容
+						// } else if (input.innerHTML.indexOf('.') != -1 && this.innerHTML == '.') {
+						// 	input.innerHTML = input.innerHTML //当前内容=当前内容
+						// } else if (input.innerHTML.indexOf('.') != -1 && input.innerHTML.split('.')[1].length == 2) {
+						// 	input.innerHTML = input.innerHTML //当前内容=当前内容
+						// } else {
+						// 	input.innerHTML += this.innerHTML //拼接金额
+						// }
 					}
 
 				}
@@ -162,7 +174,7 @@
 			})()
 			// ===支付======
 			function startWxPay(res) {
-				console.log('startWxPay===res',res)
+				// console.log('startWxPay===res',res)
 				if (res.openid != null && res.openid != undefined && res.openid != "") {
 					window.localStorage.setItem("openid", res.openid);
 				}
@@ -175,7 +187,6 @@
 				// 	paySign: res.paysign, // 支付签名
 				// 	success: function(res) {
 				// 		//支付成功
-				// 		console.log('支付成功')
 				// 	}
 				// })
 				 WeixinJSBridge.invoke(
@@ -190,19 +201,17 @@
 				      function(res){
 				      if(res.err_msg == "get_brand_wcpay_request:ok" ){
 				      // 使用以上方式判断前端返回,微信团队郑重提示：
-				            //res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
+				      //res.err_msg将在用户支付成功后返回ok，但并不保证它绝对可靠。
 				      } 
 				   }); 
 			}
 			// =====判断扫码方式
 			function IsWeixinOrAlipay() {
 				var ua = window.navigator.userAgent;
-				// alert('==ua=',ua)
-				// alert(ua.indexOf("Alipayclient"))
 				// 判断是不是微信还是支付宝登录
 				if (ua.indexOf("MicroMessenger") > 0) {
 					//return "WeiXIN";  
-					console.log('微信')
+					// console.log('微信')
 					this.productCode = "wxpayOfficial";
 					// 开始调取后端支付接口进行app唤起
 					xmlHttp = new XMLHttpRequest();
@@ -220,13 +229,12 @@
 					// （4） 回调函数  success
 					xmlHttp.onreadystatechange = function() {
 						if (this.status == 200) {
-							// console.log("得到微信codeUrl==", this.responseText)
+							// // console.log("得到微信codeUrl==", this.responseText)
 							if (this.responseText) {
-								// console.log('=====', JSON.parse(this.responseText).data)
 								if (!GetQueryString('code')) {
 									window.location.href = JSON.parse(this.responseText).data
 								} else {
-									console.log('code---', GetQueryString('code'))
+									// console.log('code---', GetQueryString('code'))
 									code = GetQueryString('code');
 									// ftype = false;
 									if(!ftype){
@@ -244,12 +252,11 @@
 				// if (ua.indexOf("Alipayclient") > 0) {
 					else{
 					// return "Alipay";  
-					console.log('支付宝')
 					this.productCode = "alipayH5";
 				}
 				// 哪个都不是
 				// return "false";
-				console.log('其他')
+				// console.log('其他')
 				// this.productCode = "alipayH5";
 			}
 			// 得到微信用户信息
@@ -257,8 +264,6 @@
 				// var _this = this;
 				ftype = true;
 				if(!openId){
-					console.log('openId==',openId)
-				
 				xmlHttp = new XMLHttpRequest();
 				var array = {
 					"systemCode": systemCode,
@@ -270,26 +275,20 @@
 				xmlHttp.setRequestHeader("Content-Type", "application/json");
 				//xmlHttp.setRequestHeader("X-CSRFToken",ele_csrf.value);
 				// （3） 发送数据
-				console.log("array", array)
+				// console.log("array", array)
 				xmlHttp.send(JSON.stringify(array)); // 请求体数据
 				// （4） 回调函数  success
 				xmlHttp.onreadystatechange = function() {
 					if (this.status == 200) {
-						console.log("responseText", this.responseText)
 						var data = this.responseText;
 						if (data) {
-							console.log('openid===',data)
-							console.log('openid=datadata==',data.data)
-							console.log('openid=json==',JSON.parse(data).data)
-							console.log('openid=json==',JSON.parse(data).data.openid)
 							openId = JSON.parse(data).data.openid;
-							// console.log(',o',openid);
+							// // console.log(',o',openid);
 							if(openId){
 								localStorage.setItem('openid',JSON.parse(data))
 							}
 							// var name = document.querySelector('.name'); //系统名称
 							// name.innerHTML = JSON.parse(this.responseText).data.systemName;
-							// console.log(name)
 						}
 
 					}
@@ -324,18 +323,14 @@
 				xmlHttp.setRequestHeader("Content-Type", "application/json");
 				//xmlHttp.setRequestHeader("X-CSRFToken",ele_csrf.value);
 				// （3） 发送数据
-				console.log("array", array)
 				xmlHttp.send(JSON.stringify(array)); // 请求体数据
 				// （4） 回调函数  success
 				xmlHttp.onreadystatechange = function() {
 					if (this.status == 200) {
-						// console.log("responseText", this.responseText)
 						var data = this.responseText;
 						if (data) {
-							// console.log(JSON.parse(data).data)
 							var name = document.querySelector('.name'); //系统名称
 							name.innerHTML = JSON.parse(this.responseText).data.systemName;
-							// console.log(name)
 							appId = JSON.parse(this.responseText).data.appId;
 						}
 
